@@ -25,6 +25,15 @@ class AppointmentPolicy
             && $appointment->isUpcoming();
     }
 
+    public function reschedule(User $user, Appointment $appointment): bool
+    {
+        return match ($user->role) {
+            UserRole::Admin, UserRole::Secretary => $appointment->status->isCancellable(),
+            UserRole::Client => $appointment->client_id === $user->id && $appointment->clientRescheduleBlocker() === null,
+            default => false,
+        };
+    }
+
     public function writeNotes(User $user, Appointment $appointment): bool
     {
         return $user->role === UserRole::Lawyer && $user->lawyer?->id === $appointment->lawyer_id;

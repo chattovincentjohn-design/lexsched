@@ -305,4 +305,36 @@
             await picker.refresh({ keepSelection: true });
         })();
     }
+
+    /* ---------------- Reschedule form ---------------- */
+    const reschedule = $('#reschedule');
+    if (reschedule) {
+        const endpoint = reschedule.dataset.availability;
+        const lawyerSelect = $('#lawyer_id', reschedule);
+        const picker = schedulePicker({
+            endpoint,
+            serviceId: () => reschedule.dataset.service,
+            lawyerId: () => lawyerSelect.value,
+            dateInput: $('#f-date', reschedule),
+            timeInput: $('#f-time', reschedule),
+            calendar: $('#cal', reschedule),
+            title: $('#cal-title', reschedule),
+            prev: $('#cal-prev', reschedule),
+            next: $('#cal-next', reschedule),
+            slots: $('#slots', reschedule),
+            slotsTitle: $('#slots-title', reschedule),
+            onChange: () => {},
+        });
+        lawyerSelect.addEventListener('change', () => picker.refresh());
+        (async () => {
+            const data = await getJson(`${endpoint}?service=${reschedule.dataset.service}`);
+            const current = reschedule.dataset.lawyer;
+            lawyerSelect.innerHTML = data.lawyers.map((l) => `<option value="${l.id}" ${String(l.id) === current ? 'selected' : ''}>${escapeHtml(l.name)}</option>`).join('')
+                + '<option value="any">Any available lawyer</option>';
+            await picker.refresh({ keepSelection: true });
+        })();
+        reschedule.addEventListener('submit', (event) => {
+            if (!$('#f-time', reschedule).value) { event.preventDefault(); window.alert('Pick a date and an open time first.'); }
+        });
+    }
 }());

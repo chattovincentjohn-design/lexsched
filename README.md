@@ -4,11 +4,12 @@ Online appointment and notarial system for a law office, built with Laravel 13, 
 
 ## Features
 
-- **Clients** register, book a consultation in four steps (service, lawyer and open time, case details, payment), upload a supporting document, and track or cancel their appointments.
-- **Secretary** approves or declines requests, sees an automatic **conflict-of-interest check**, records payments and official receipt numbers, adds walk-in clients, and runs the **notarial checklist** (personal appearance, valid ID, complete document).
+- **Clients** register, book a consultation in four steps (service, lawyer and open time, case details, payment), upload a supporting document, track, **reschedule** (up to 24 hours before, twice at most) or cancel their appointments, and print an acknowledgment receipt.
+- **Secretary** approves or declines requests, sees an automatic **conflict-of-interest check**, works from a **day calendar** across all lawyers, reschedules, records payments and official receipt numbers, adds walk-in clients, and runs the **notarial checklist** (personal appearance, valid ID, complete document).
 - **Notarial register**: each notary public gets sequential Doc. No. / Page No. / Book No. / Series entries, exportable to CSV.
 - **Lawyers** see a weekly calendar, block hours or whole days for hearings and leave, and keep private consultation notes.
-- **Admin** sees office numbers, manages services, fees, notarial document types and staff accounts, exports reports, and reads the audit log.
+- **Admin** sees office numbers, manages services, fees, notarial document types, **holidays** and staff accounts, exports reports, and reads the audit log.
+- **Accounts**: forgot-password by email link, profile and password change for every role.
 - **No double booking**: a unique database index on each lawyer's date and hour, plus checks for weekends, holidays, lunch break and blocked hours.
 - **Online payments** through PayMongo (GCash, Maya, cards), confirmed automatically.
 - **SMS and email notifications** for received, approved, declined and cancelled bookings, and a reminder the day before (SMS through Semaphore).
@@ -84,6 +85,7 @@ php artisan test
 | Status changes and notifications | `app/Services/AppointmentWorkflow.php`, `app/Notifications/` |
 | Conflict-of-interest check | `app/Services/ConflictChecker.php` |
 | Notarial register numbering | `app/Services/NotarialRegister.php` |
-| Office hours, holidays, fees, ID types | `config/lexsched.php` |
+| Office hours, reschedule rules, fees, ID types | `config/lexsched.php` |
+| Holidays (seed list; admins add more in the app) | `database/seeders/HolidaySeeder.php` |
 | Database tables | `database/migrations/2026_11_26_000100_create_lexsched_tables.php` |
 | Pages | `resources/views/`, styles in `public/css/app.css`, scripts in `public/js/app.js` |

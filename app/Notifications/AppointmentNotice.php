@@ -10,7 +10,7 @@ use Illuminate\Notifications\Notification;
 class AppointmentNotice extends Notification
 {
     /**
-     * @param  'received'|'approved'|'declined'|'cancelled'|'reminder'  $event
+     * @param  'received'|'approved'|'declined'|'cancelled'|'rescheduled'|'reminder'  $event
      */
     public function __construct(public Appointment $appointment, public string $event) {}
 
@@ -60,6 +60,7 @@ class AppointmentNotice extends Notification
             'approved' => "LexSched: Your appointment {$a->reference} on {$when} with {$a->lawyer->name} is CONFIRMED.".($a->mode === 'video' ? " Video link: {$a->videoLink()}" : ' Please arrive 10 minutes early.'),
             'declined' => "LexSched: Sorry, we could not accept request {$a->reference} for {$when}.".($a->decline_reason ? " Reason: {$a->decline_reason}." : '').' You may book another schedule.',
             'cancelled' => "LexSched: Appointment {$a->reference} on {$when} has been cancelled.",
+            'rescheduled' => "LexSched: Appointment {$a->reference} is now on {$when} with {$a->lawyer->name}. Status: ".strtoupper($a->status->label()).'.',
             'reminder' => "LexSched reminder: You have an appointment tomorrow, {$when}, with {$a->lawyer->name}. Ref {$a->reference}.",
             default => "LexSched: Update on appointment {$a->reference}.",
         };
@@ -72,6 +73,7 @@ class AppointmentNotice extends Notification
             'approved' => "Appointment confirmed – {$this->appointment->reference}",
             'declined' => "Booking request declined – {$this->appointment->reference}",
             'cancelled' => "Appointment cancelled – {$this->appointment->reference}",
+            'rescheduled' => "Appointment moved – {$this->appointment->reference}",
             'reminder' => "Reminder: your appointment tomorrow – {$this->appointment->reference}",
             default => "Appointment update – {$this->appointment->reference}",
         };
@@ -84,6 +86,7 @@ class AppointmentNotice extends Notification
             'approved' => 'Your appointment is confirmed.',
             'declined' => 'We are sorry, but we could not accept your booking request.',
             'cancelled' => 'Your appointment has been cancelled.',
+            'rescheduled' => 'Your appointment has been moved to a new schedule.',
             'reminder' => 'This is a reminder of your appointment tomorrow.',
             default => 'There is an update on your appointment.',
         };

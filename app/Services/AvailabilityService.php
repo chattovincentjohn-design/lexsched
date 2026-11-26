@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\AppointmentStatus;
 use App\Models\Appointment;
 use App\Models\BlockedSlot;
+use App\Models\Holiday;
 use App\Models\Lawyer;
 use App\Models\Service;
 use Carbon\CarbonInterface;
@@ -22,6 +23,11 @@ class AvailabilityService
      * Minutes after a slot starts during which it can still be booked (used for walk-ins).
      */
     private int $graceMinutes = 0;
+
+    /**
+     * @var list<string>|null
+     */
+    private ?array $holidayDates = null;
 
     /**
      * A copy that still offers the slot that started within the last hour, for clients already at the office.
@@ -60,7 +66,9 @@ class AvailabilityService
 
     public function isOfficeDay(CarbonInterface $date): bool
     {
-        return ! $date->isWeekend() && ! in_array($date->toDateString(), config('lexsched.holidays'), true);
+        $this->holidayDates ??= Holiday::dates();
+
+        return ! $date->isWeekend() && ! in_array($date->toDateString(), $this->holidayDates, true);
     }
 
     public function isWithinBookingWindow(CarbonInterface $date): bool

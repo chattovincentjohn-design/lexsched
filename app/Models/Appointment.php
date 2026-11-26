@@ -30,7 +30,7 @@ class Appointment extends Model
         'scheduled_date', 'start_time', 'status', 'mode', 'source', 'concern', 'opposing_party',
         'fee', 'payment_method', 'payment_reference', 'paid_at', 'official_receipt_no', 'paymongo_checkout_id', 'paymongo_payment_id', 'notarial_document_id', 'copies',
         'check_appeared', 'check_id_presented', 'check_document_complete', 'id_type',
-        'lawyer_notes', 'decline_reason', 'reminded_at',
+        'lawyer_notes', 'decline_reason', 'reminded_at', 'reschedule_count',
     ];
 
     protected function casts(): array
@@ -150,6 +150,28 @@ class Appointment extends Model
     public function isPaid(): bool
     {
         return $this->paid_at !== null;
+    }
+
+    /**
+     * Why the client can't move this appointment themselves, or null if they can.
+     */
+    public function clientRescheduleBlocker(): ?string
+    {
+        if (! $this->status->isCancellable()) {
+            return 'This appointment can no longer be moved.';
+        }
+
+        $cutoff = (int) config('lexsched.reschedule_cutoff_hours');
+
+        if ($this->startsAt()->lt(now()->addHours($cutoff))) {
+            return "Appointments can be moved online until {$cutoff} hours before they start. Please call the office.";
+        }
+
+        if ($this->reschedule_count >= (int) config('lexsched.max_client_reschedules')) {
+            return 'You have already moved this appointment the maximum number of times. Please call the office.';
+        }
+
+        return null;
     }
 
     public function wasPaidOnline(): bool

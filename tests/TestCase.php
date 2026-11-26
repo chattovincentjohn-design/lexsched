@@ -3,6 +3,7 @@
 namespace Tests;
 
 use App\Enums\UserRole;
+use App\Models\Holiday;
 use App\Models\Lawyer;
 use App\Models\NotarialDocument;
 use App\Models\Service;
@@ -35,6 +36,7 @@ abstract class TestCase extends BaseTestCase
 
     protected function seedOffice(): void
     {
+        Holiday::factory()->create(['date' => '2026-12-08', 'name' => 'Feast of the Immaculate Conception']);
         $this->family = Service::factory()->create(['slug' => 'family', 'name' => 'Family Law', 'fee' => 1500]);
         $this->notarial = Service::factory()->notarial()->create(['slug' => 'notarial']);
         $this->affidavit = NotarialDocument::factory()->create(['name' => 'Affidavit of Loss', 'fee' => 300]);

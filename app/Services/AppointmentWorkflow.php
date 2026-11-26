@@ -4,8 +4,10 @@ namespace App\Services;
 
 use App\Enums\AppointmentStatus;
 use App\Models\Appointment;
+use App\Models\Lawyer;
 use App\Notifications\AppointmentNotice;
 use DomainException;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\Notification;
 
 /**
@@ -14,6 +16,56 @@ use Illuminate\Support\Facades\Notification;
  */
 class AppointmentWorkflow
 {
+    public function __construct(private AvailabilityService $availability) {}
+
+    /**
+     * Moves an appointment to another date, time or lawyer. A client's change goes back to the
+     * secretary for approval; a change made by staff keeps its current status.
+     */
+    public function reschedule(Appointment $appointment, Lawyer $lawyer, string $date, string $time, bool $byStaff): void
+    {
+        if (! $appointment->status->isCancellable()) {
+            throw new DomainException('Only pending or approved appointments can be moved.');
+        }
+
+        if (! $byStaff && ($reason = $appointment->clientRescheduleBlocker())) {
+            throw new DomainException($reason);
+        }
+
+        if ($appointment->lawyer_id === $lawyer->id && $appointment->scheduled_date->toDateString() === $date && $appointment->start_time === $time) {
+            throw new DomainException('Choose a different date or time.');
+        }
+
+        $availability = $byStaff ? $this->availability->forWalkIns() : $this->availability;
+
+        if (! $availability->lawyersFor($appointment->service)->contains('id', $lawyer->id)) {
+            throw new DomainException('That lawyer does not handle this service.');
+        }
+
+        if (! $availability->isSlotFree($lawyer, $date, $time)) {
+            throw new DomainException('That time is no longer available. Please choose another.');
+        }
+
+        $previous = $appointment->scheduleLabel();
+
+        try {
+            $appointment->update([
+                'lawyer_id' => $lawyer->id,
+                'scheduled_date' => $date,
+                'start_time' => $time,
+                'status' => $byStaff ? $appointment->status : AppointmentStatus::Pending,
+                'reminded_at' => null,
+                'reschedule_count' => $appointment->reschedule_count + ($byStaff ? 0 : 1),
+            ]);
+        } catch (UniqueConstraintViolationException) {
+            throw new DomainException('Someone just booked that time. Please choose another.');
+        }
+
+        $appointment->load('lawyer.user');
+        AuditLogger::log('rescheduled', "Moved {$appointment->reference} from {$previous} to {$appointment->scheduleLabel()} with {$appointment->lawyer->name}", $appointment);
+        $this->notify($appointment, 'rescheduled');
+    }
+
     public function approve(Appointment $appointment): void
     {
         $this->transition($appointment, [AppointmentStatus::Pending], AppointmentStatus::Approved);

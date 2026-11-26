@@ -24,7 +24,7 @@
                     <a href="{{ route('client.appointments.index') }}" @class(['on' => request()->routeIs('client.appointments.*')])>My appointments</a>
                 @endif
                 @if (in_array($role, [\App\Enums\UserRole::Secretary, \App\Enums\UserRole::Admin], true))
-                    <a href="{{ route('staff.appointments.index') }}" @class(['on' => request()->routeIs('staff.appointments.*', 'staff.walk-in.*')])>Appointments</a>
+                    <a href="{{ route('staff.appointments.index') }}" @class(['on' => request()->routeIs('staff.appointments.*', 'staff.walk-in.*', 'staff.calendar')])>Appointments</a>
                     <a href="{{ route('staff.register') }}" @class(['on' => request()->routeIs('staff.register*')])>Notarial register</a>
                 @endif
                 @if ($role === \App\Enums\UserRole::Lawyer)
@@ -33,12 +33,13 @@
                 @if ($role === \App\Enums\UserRole::Admin)
                     <a href="{{ route('admin.dashboard') }}" @class(['on' => request()->routeIs('admin.dashboard')])>Overview</a>
                     <a href="{{ route('admin.services.index') }}" @class(['on' => request()->routeIs('admin.services.*')])>Services &amp; fees</a>
+                    <a href="{{ route('admin.holidays.index') }}" @class(['on' => request()->routeIs('admin.holidays.*')])>Holidays</a>
                     <a href="{{ route('admin.users.index') }}" @class(['on' => request()->routeIs('admin.users.*')])>Users</a>
                     <a href="{{ route('admin.audit') }}" @class(['on' => request()->routeIs('admin.audit')])>Audit log</a>
                 @endif
             </nav>
             <div class="who">
-                <div><b>{{ auth()->user()->name }}</b><br><span class="role">{{ $role->label() }}</span></div>
+                <div><a href="{{ route('profile.edit') }}" style="color:inherit;text-decoration:none"><b>{{ auth()->user()->name }}</b></a><br><span class="role">{{ $role->label() }} · <a href="{{ route('profile.edit') }}">Profile</a></span></div>
                 <form method="POST" action="{{ route('logout') }}">@csrf<button class="linkbtn">Sign out</button></form>
             </div>
         @else

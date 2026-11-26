@@ -6,8 +6,8 @@
 
 <form id="walkin" method="POST" action="{{ route('staff.walk-in.store') }}" data-availability="{{ route('availability') }}" data-today="{{ today()->toDateString() }}">
     @csrf
-    <input type="hidden" name="date" id="f-date" value="{{ old('date') }}">
-    <input type="hidden" name="time" id="f-time" value="{{ old('time') }}">
+    <input type="hidden" name="date" id="f-date" value="{{ old('date', request('date')) }}">
+    <input type="hidden" name="time" id="f-time" value="{{ old('time', request('time')) }}">
     <div class="split">
         <div class="panel form-grid" style="align-self:start">
             <x-field name="client_name" label="Client name" class="full"><input id="client_name" name="client_name" value="{{ old('client_name') }}" required maxlength="120"></x-field>
@@ -16,11 +16,11 @@
             <x-field name="service_id" label="Service">
                 <select id="service_id" name="service_id">
                     @foreach ($services as $service)
-                        <option value="{{ $service->id }}" data-notarial="{{ $service->is_notarial ? 1 : 0 }}" @selected(old('service_id', $services->firstWhere('is_notarial')?->id) == $service->id)>{{ $service->name }}{{ $service->is_notarial ? '' : ' · ₱'.number_format($service->fee) }}</option>
+                        <option value="{{ $service->id }}" data-notarial="{{ $service->is_notarial ? 1 : 0 }}" @selected(old('service_id', request('lawyer') ? $services->first(fn ($s) => $s->lawyers()->whereKey(request('lawyer'))->exists())?->id : $services->firstWhere('is_notarial')?->id) == $service->id)>{{ $service->name }}{{ $service->is_notarial ? '' : ' · ₱'.number_format($service->fee) }}</option>
                     @endforeach
                 </select>
             </x-field>
-            <x-field name="lawyer_id" label="Lawyer"><select id="lawyer_id" name="lawyer_id" data-old="{{ old('lawyer_id') }}"><option value="any">First available</option></select></x-field>
+            <x-field name="lawyer_id" label="Lawyer"><select id="lawyer_id" name="lawyer_id" data-old="{{ old('lawyer_id', request('lawyer')) }}"><option value="any">First available</option></select></x-field>
             <div data-only="notarial" class="full form-grid" style="grid-column:1/-1">
                 <x-field name="notarial_document_id" label="Document">
                     <select id="notarial_document_id" name="notarial_document_id">

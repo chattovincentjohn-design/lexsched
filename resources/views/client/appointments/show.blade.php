@@ -67,6 +67,9 @@
                 <p>This appointment is closed. You can book a new schedule anytime.</p>
         @endswitch
         <p class="small muted">{{ config('lexsched.office_address') }} · {{ config('lexsched.office_phone') }}</p>
+        @if ($appointment->isPaid())
+            <a class="btn block" href="{{ route('appointments.receipt', $appointment) }}">View or print receipt</a>
+        @endif
         @if ($appointment->canPayOnline())
             <form method="POST" action="{{ route('client.appointments.pay', $appointment) }}" class="stack" style="gap:6px">
                 @csrf
@@ -74,6 +77,11 @@
                 <span class="hint">GCash, Maya or card through PayMongo.</span>
             </form>
         @endif
+        @can('reschedule', $appointment)
+            <a class="btn block" href="{{ route('client.appointments.reschedule', $appointment) }}">Move to another schedule</a>
+        @elseif ($appointment->status->isCancellable() && $appointment->isUpcoming())
+            <p class="hint">{{ $appointment->clientRescheduleBlocker() }}</p>
+        @endcan
         @can('cancel', $appointment)
             <form method="POST" action="{{ route('client.appointments.cancel', $appointment) }}" data-confirm="Cancel {{ $appointment->reference }}? The time slot will be given to other clients.">
                 @csrf

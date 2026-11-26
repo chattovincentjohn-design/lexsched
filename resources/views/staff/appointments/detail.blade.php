@@ -59,6 +59,7 @@
     <div class="row-flex">
         @if ($status === $S::Pending)
             <form method="POST" action="{{ route('staff.appointments.approve', $appointment) }}" @if ($findings) data-confirm="This request has a possible conflict of interest. Approve anyway?" @endif>@csrf<button class="btn primary">Approve</button></form>
+            <a class="btn" href="{{ route('staff.appointments.reschedule', $appointment) }}">Reschedule</a>
         @endif
         @if ($status === $S::Approved)
             @if ($appointment->isNotarial())
@@ -70,6 +71,7 @@
             @unless ($appointment->isUpcoming())
                 <form method="POST" action="{{ route('staff.appointments.no-show', $appointment) }}">@csrf<button class="btn">No-show</button></form>
             @endunless
+            <a class="btn" href="{{ route('staff.appointments.reschedule', $appointment) }}">Reschedule</a>
             <form method="POST" action="{{ route('staff.appointments.cancel', $appointment) }}" data-confirm="Cancel {{ $appointment->reference }} and notify the client?{{ $appointment->wasPaidOnline() ? ' This was paid online: refund it from the PayMongo dashboard.' : '' }}">@csrf<button class="btn danger">Cancel</button></form>
         @endif
     </div>
@@ -85,6 +87,9 @@
         </details>
     @endif
 
+    @if ($appointment->isPaid())
+        <a class="btn sm" href="{{ route('appointments.receipt', $appointment) }}" style="align-self:flex-start">Print receipt</a>
+    @endif
     @if (! $appointment->isPaid() && ! in_array($status, [$S::Declined, $S::Cancelled], true))
         <details class="more">
             <summary>Record payment (₱{{ number_format($appointment->fee, 2) }})</summary>

@@ -7,6 +7,7 @@ use App\Enums\UserRole;
 use App\Models\Appointment;
 use App\Models\AuditLog;
 use App\Models\BlockedSlot;
+use App\Models\Holiday;
 use App\Models\Lawyer;
 use App\Models\NotarialDocument;
 use App\Models\NotarialEntry;
@@ -24,6 +25,8 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        $this->call(HolidaySeeder::class);
+
         $services = collect([
             ['family', 'Family Law', 'Annulment, legal separation, custody, child support, adoption', 1500, false],
             ['criminal', 'Criminal Law', 'Complaints, subpoenas, bail, preliminary investigation', 2000, false],
@@ -159,7 +162,8 @@ class DatabaseSeeder extends Seeder
      */
     private function weekday(int $offset): string
     {
-        $isOfficeDay = fn (Carbon $day) => ! $day->isWeekend() && ! in_array($day->toDateString(), config('lexsched.holidays'), true);
+        $holidays = Holiday::dates();
+        $isOfficeDay = fn (Carbon $day) => ! $day->isWeekend() && ! in_array($day->toDateString(), $holidays, true);
         $day = today();
 
         while (! $isOfficeDay($day)) {

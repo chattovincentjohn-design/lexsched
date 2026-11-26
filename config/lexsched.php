@@ -34,12 +34,11 @@ return [
     'slots' => ['09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00'],
 
     /*
-    | Non-working days when the office is closed (regular and special non-working holidays).
+    | Rescheduling: clients may move an appointment up to this many hours before it starts,
+    | and at most this many times. Staff can always reschedule.
     */
-    'holidays' => [
-        '2026-11-30', '2026-12-08', '2026-12-24', '2026-12-25', '2026-12-30', '2026-12-31',
-        '2027-01-01', '2027-02-25', '2027-03-25', '2027-03-26', '2027-04-09', '2027-05-01',
-    ],
+    'reschedule_cutoff_hours' => 24,
+    'max_client_reschedules' => 2,
 
     /*
     | How far ahead clients may book, in days.
