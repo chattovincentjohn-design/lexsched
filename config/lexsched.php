@@ -18,6 +18,17 @@ return [
     ],
 
     /*
+    | PayMongo online payments (GCash, Maya, cards). Leave the secret key empty to use the
+    | manual e-wallet flow above, where clients type in their reference number.
+    */
+    'paymongo' => [
+        'secret_key' => env('PAYMONGO_SECRET_KEY'),
+        'webhook_secret' => env('PAYMONGO_WEBHOOK_SECRET'),
+        'methods' => ['gcash', 'paymaya', 'card'],
+        'signature_tolerance_seconds' => 300,
+    ],
+
+    /*
     | Bookable start times (24-hour). 12:00 is left out for the lunch break.
     */
     'slots' => ['09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00'],

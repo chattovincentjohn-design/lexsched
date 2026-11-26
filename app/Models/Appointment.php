@@ -19,13 +19,16 @@ class Appointment extends Model
 
     public const MODES = ['in_office' => 'In-office', 'video' => 'Video call'];
 
-    public const PAYMENT_METHODS = ['gcash' => 'GCash', 'maya' => 'Maya', 'office' => 'Pay at office', 'cash' => 'Cash'];
+    public const PAYMENT_METHODS = [
+        'gcash' => 'GCash', 'maya' => 'Maya', 'card' => 'Card', 'office' => 'Pay at office',
+        'cash' => 'Cash', 'online' => 'Online (PayMongo)',
+    ];
 
     /** @var list<string> */
     protected $fillable = [
         'client_id', 'client_name', 'client_phone', 'client_email', 'lawyer_id', 'service_id',
         'scheduled_date', 'start_time', 'status', 'mode', 'source', 'concern', 'opposing_party',
-        'fee', 'payment_method', 'payment_reference', 'paid_at', 'official_receipt_no', 'notarial_document_id', 'copies',
+        'fee', 'payment_method', 'payment_reference', 'paid_at', 'official_receipt_no', 'paymongo_checkout_id', 'paymongo_payment_id', 'notarial_document_id', 'copies',
         'check_appeared', 'check_id_presented', 'check_document_complete', 'id_type',
         'lawyer_notes', 'decline_reason', 'reminded_at',
     ];
@@ -147,6 +150,21 @@ class Appointment extends Model
     public function isPaid(): bool
     {
         return $this->paid_at !== null;
+    }
+
+    public function wasPaidOnline(): bool
+    {
+        return $this->paymongo_payment_id !== null;
+    }
+
+    /**
+     * Whether the client can still pay online: unpaid, still active, and PayMongo is set up.
+     */
+    public function canPayOnline(): bool
+    {
+        return ! $this->isPaid()
+            && $this->status->isCancellable()
+            && filled(config('lexsched.paymongo.secret_key'));
     }
 
     public function isNotarial(): bool

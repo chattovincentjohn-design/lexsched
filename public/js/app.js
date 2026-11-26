@@ -196,7 +196,8 @@
         function applyPayment() {
             const method = $('input[name=payment_method]:checked', form)?.value;
             $$('[data-wallet]', form).forEach((el) => { el.hidden = el.dataset.wallet !== method; });
-            $('#payment_reference').closest('.field').hidden = method === 'office';
+            $('#payment_reference').closest('.field').hidden = !['gcash', 'maya'].includes(method);
+            $('#submit').textContent = method === 'online' ? 'Submit and pay online' : 'Submit booking request';
         }
 
         function validate(current) {

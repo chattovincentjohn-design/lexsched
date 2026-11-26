@@ -7,10 +7,12 @@ use App\Http\Controllers\AvailabilityController;
 use App\Http\Controllers\Client;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Lawyer\ScheduleController;
+use App\Http\Controllers\PayMongoWebhookController;
 use App\Http\Controllers\Staff;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::post('/webhooks/paymongo', PayMongoWebhookController::class)->name('webhooks.paymongo');
 
 Route::middleware('guest')->group(function (): void {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -30,6 +32,7 @@ Route::middleware('auth')->group(function (): void {
         Route::post('/book', [Client\BookingController::class, 'store'])->name('book.store');
         Route::get('/my/appointments', [Client\AppointmentController::class, 'index'])->name('appointments.index');
         Route::get('/my/appointments/{appointment}', [Client\AppointmentController::class, 'show'])->name('appointments.show');
+        Route::post('/my/appointments/{appointment}/pay', [Client\AppointmentController::class, 'pay'])->name('appointments.pay');
         Route::post('/my/appointments/{appointment}/cancel', [Client\AppointmentController::class, 'cancel'])->name('appointments.cancel');
     });
 

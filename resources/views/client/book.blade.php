@@ -128,16 +128,25 @@
             <div class="panel"><h2>Review your booking</h2><dl class="kv" id="summary"></dl><div id="summary-reqs" style="margin-top:16px"></div></div>
             <div class="panel stack">
                 <h2>Payment</h2>
+                @php($onlinePayments = filled(config('lexsched.paymongo.secret_key')))
+                @php($paymentOptions = $onlinePayments ? ['online' => 'Pay online now', 'office' => 'Pay at the office'] : ['gcash' => 'GCash', 'maya' => 'Maya', 'office' => 'Pay at the office'])
                 <div class="radio-row" style="flex-direction:column">
-                    @foreach (['gcash' => 'GCash', 'maya' => 'Maya', 'office' => 'Pay at the office'] as $value => $label)
-                        <label><input type="radio" name="payment_method" value="{{ $value }}" @checked(old('payment_method', 'gcash') === $value)> {{ $label }}</label>
+                    @foreach ($paymentOptions as $value => $label)
+                        <label><input type="radio" name="payment_method" value="{{ $value }}" @checked(old('payment_method', array_key_first($paymentOptions)) === $value)> {{ $label }}
+                            @if ($value === 'online')<span class="hint">· GCash, Maya or card</span>@endif</label>
                     @endforeach
                 </div>
-                @foreach (config('lexsched.ewallets') as $key => $wallet)
-                    <div class="wallet" data-wallet="{{ $key }}" hidden>
-                        Send the fee to <b>{{ $wallet['name'] }} {{ $wallet['account'] }}</b> ({{ $wallet['holder'] }}), then enter the reference number from your receipt. The secretary checks it before confirming.
+                @if ($onlinePayments)
+                    <div class="wallet" data-wallet="online" hidden>
+                        After you submit, you'll go to PayMongo's secure payment page to pay with GCash, Maya or a debit/credit card. Your booking is saved even if you don't finish paying, and you can pay later from your appointment page.
                     </div>
-                @endforeach
+                @else
+                    @foreach (config('lexsched.ewallets') as $key => $wallet)
+                        <div class="wallet" data-wallet="{{ $key }}" hidden>
+                            Send the fee to <b>{{ $wallet['name'] }} {{ $wallet['account'] }}</b> ({{ $wallet['holder'] }}), then enter the reference number from your receipt. The secretary checks it before confirming.
+                        </div>
+                    @endforeach
+                @endif
                 <x-field name="payment_reference" label="Reference number">
                     <input id="payment_reference" name="payment_reference" value="{{ old('payment_reference') }}" maxlength="40" inputmode="numeric" placeholder="e.g. 1009 834 567 123">
                 </x-field>

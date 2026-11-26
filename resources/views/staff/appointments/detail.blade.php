@@ -13,7 +13,9 @@
         <dt>Schedule</dt><dd>{{ $appointment->scheduleLabel() }}</dd>
         <dt>Mode</dt><dd>{{ $appointment->modeLabel() }}</dd>
         <dt>Payment</dt><dd>{{ $appointment->paymentLabel() }} · ₱{{ number_format($appointment->fee, 2) }}
-            @if ($appointment->payment_reference)<br><span class="small muted">Ref. {{ $appointment->payment_reference }} (check before approving)</span>@endif
+            @if ($appointment->wasPaidOnline())<br><span class="small muted">Confirmed by PayMongo · {{ $appointment->paymongo_payment_id }}</span>
+            @elseif ($appointment->payment_reference)<br><span class="small muted">Ref. {{ $appointment->payment_reference }} (check before approving)</span>
+            @elseif ($appointment->payment_method === 'online')<br><span class="small muted">Chose to pay online, not paid yet</span>@endif
             @if ($appointment->official_receipt_no)<br><span class="small muted">OR No. {{ $appointment->official_receipt_no }}</span>@endif</dd>
         @unless ($appointment->isNotarial())
             <dt>Opposing party</dt><dd>{{ $appointment->opposing_party ?: '—' }}</dd>
@@ -68,7 +70,7 @@
             @unless ($appointment->isUpcoming())
                 <form method="POST" action="{{ route('staff.appointments.no-show', $appointment) }}">@csrf<button class="btn">No-show</button></form>
             @endunless
-            <form method="POST" action="{{ route('staff.appointments.cancel', $appointment) }}" data-confirm="Cancel {{ $appointment->reference }} and notify the client?">@csrf<button class="btn danger">Cancel</button></form>
+            <form method="POST" action="{{ route('staff.appointments.cancel', $appointment) }}" data-confirm="Cancel {{ $appointment->reference }} and notify the client?{{ $appointment->wasPaidOnline() ? ' This was paid online: refund it from the PayMongo dashboard.' : '' }}">@csrf<button class="btn danger">Cancel</button></form>
         @endif
     </div>
 

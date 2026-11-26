@@ -65,6 +65,29 @@ class AppointmentWorkflow
         AuditLogger::log('payment', 'Recorded ₱'.number_format((float) $appointment->fee, 2)." payment for {$appointment->reference}".($receiptNo ? " (OR {$receiptNo})" : ''), $appointment);
     }
 
+    /**
+     * Records a payment confirmed by PayMongo. Safe to call twice for the same payment
+     * (the webhook and the client's return to the site can both arrive).
+     */
+    public function recordOnlinePayment(Appointment $appointment, string $paymentId, string $method): bool
+    {
+        if ($appointment->isPaid()) {
+            return false;
+        }
+
+        $appointment->update([
+            'paid_at' => now(),
+            'payment_method' => $method,
+            'payment_reference' => $paymentId,
+            'paymongo_payment_id' => $paymentId,
+        ]);
+
+        $label = Appointment::PAYMENT_METHODS[$method] ?? $method;
+        AuditLogger::log('payment', 'PayMongo confirmed ₱'.number_format((float) $appointment->fee, 2)." {$label} payment for {$appointment->reference} ({$paymentId})", $appointment);
+
+        return true;
+    }
+
     public function notify(Appointment $appointment, string $event): void
     {
         $routes = array_filter(['mail' => $appointment->client_email, 'sms' => $appointment->client_phone]);

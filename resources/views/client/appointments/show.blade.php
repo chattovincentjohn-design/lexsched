@@ -3,6 +3,14 @@
 @section('content')
 <p style="margin-bottom:14px"><a href="{{ route('client.appointments.index') }}">← My appointments</a></p>
 
+@if ($paymentResult === 'success' && $appointment->isPaid())
+    <div class="alert ok" role="status">Payment received. Thank you! PayMongo reference {{ $appointment->paymongo_payment_id }}.</div>
+@elseif ($paymentResult === 'success')
+    <div class="alert ok" role="status">We're waiting for PayMongo to confirm your payment. This page will show "Paid" once it does, usually within a minute.</div>
+@elseif ($paymentResult === 'cancelled')
+    <div class="alert bad" role="status">Payment was not completed. Your booking is still saved, and you can pay below or at the office.</div>
+@endif
+
 <div class="split">
     <div class="panel stack">
         @if (session('booked'))
@@ -59,6 +67,13 @@
                 <p>This appointment is closed. You can book a new schedule anytime.</p>
         @endswitch
         <p class="small muted">{{ config('lexsched.office_address') }} · {{ config('lexsched.office_phone') }}</p>
+        @if ($appointment->canPayOnline())
+            <form method="POST" action="{{ route('client.appointments.pay', $appointment) }}" class="stack" style="gap:6px">
+                @csrf
+                <button class="btn primary block">Pay ₱{{ number_format($appointment->fee, 2) }} online</button>
+                <span class="hint">GCash, Maya or card through PayMongo.</span>
+            </form>
+        @endif
         @can('cancel', $appointment)
             <form method="POST" action="{{ route('client.appointments.cancel', $appointment) }}" data-confirm="Cancel {{ $appointment->reference }}? The time slot will be given to other clients.">
                 @csrf

@@ -31,7 +31,7 @@ class StoreBookingRequest extends FormRequest
             'opposing_party' => ['nullable', 'string', 'max:150'],
             'notarial_document_id' => [Rule::requiredIf($isNotarial), 'nullable', Rule::exists('notarial_documents', 'id')->where('is_active', true)],
             'copies' => ['nullable', 'integer', 'min:1', 'max:10'],
-            'payment_method' => ['required', Rule::in(['gcash', 'maya', 'office'])],
+            'payment_method' => ['required', Rule::in(filled(config('lexsched.paymongo.secret_key')) ? ['online', 'office'] : ['gcash', 'maya', 'office'])],
             'payment_reference' => ['nullable', 'required_if:payment_method,gcash,maya', 'string', 'max:40'],
             'attachment' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png,docx', 'max:'.config('lexsched.max_upload_kb')],
             'consent' => ['accepted'],

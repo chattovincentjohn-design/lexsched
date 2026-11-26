@@ -10,6 +10,7 @@ Online appointment and notarial system for a law office, built with Laravel 13, 
 - **Lawyers** see a weekly calendar, block hours or whole days for hearings and leave, and keep private consultation notes.
 - **Admin** sees office numbers, manages services, fees, notarial document types and staff accounts, exports reports, and reads the audit log.
 - **No double booking**: a unique database index on each lawyer's date and hour, plus checks for weekends, holidays, lunch break and blocked hours.
+- **Online payments** through PayMongo (GCash, Maya, cards), confirmed automatically.
 - **SMS and email notifications** for received, approved, declined and cancelled bookings, and a reminder the day before (SMS through Semaphore).
 
 ## Requirements
@@ -54,6 +55,20 @@ Reminders are sent by `php artisan appointments:send-reminders`, scheduled hourl
 ```
 
 Without `SEMAPHORE_API_KEY` in `.env`, text messages are written to `storage/logs/laravel.log` instead of being sent. Emails use `MAIL_MAILER=log` until you configure SMTP.
+
+## Online payments (PayMongo)
+
+Clients can pay with GCash, Maya or a debit/credit card on PayMongo's secure checkout page. Payments are confirmed automatically, both when the client returns to the site and through PayMongo's webhook. Without a PayMongo key, the booking form falls back to manual GCash/Maya transfers with a reference number that the secretary checks.
+
+1. Create an account at https://dashboard.paymongo.com and copy the **test secret key** (`sk_test_...`) from **Developers → API keys**.
+2. Add it to `.env` as `PAYMONGO_SECRET_KEY=sk_test_...`, then run `php artisan config:clear`.
+3. Once the site has a public `https://` address, register the webhook. The command prints a secret to put in `.env` as `PAYMONGO_WEBHOOK_SECRET`:
+
+```bash
+php artisan paymongo:webhook https://your-domain/webhooks/paymongo
+```
+
+On `localhost` the webhook can't reach you, but payments are still confirmed when the client returns from the payment page. Test-mode payments use PayMongo's test GCash, Maya and card screens and move no real money. Switch to the live key (`sk_live_...`) only after PayMongo activates your account. Refunds for cancelled appointments are done from the PayMongo dashboard.
 
 ## Tests
 
